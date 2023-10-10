@@ -1,0 +1,22 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/.vscode": true,
+        "**/bin": true,
+
+        "README.md": true,
+        "LICENSE": true,
+        "ugent-*.cls": true,
+        ".gitignore": true,
+        "logo": true,
+        "main-person*.tex": true,
+        "**/*-converted-to.pdf": true
+    },
+
+    "latex-workshop.latex.autoBuild.run": "onFileChange",
+    "latex-workshop.latex.outDir": "bin"
+}

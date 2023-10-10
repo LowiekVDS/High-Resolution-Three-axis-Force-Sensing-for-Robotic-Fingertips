@@ -1,0 +1,18 @@
+# ignore
+bin/
+eps/
+
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.out
+*.pdf
+*.synctex.gz
+*.toc
+
+# allow
+!logo/**/**/*.pdf
