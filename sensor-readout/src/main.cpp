@@ -59,16 +59,18 @@ void loop(void) {
       Serial.println("Unable to read XYZ data from the sensor.");
   }
 
-  delay(500);
+  Serial.println(millis());
 
-  /* Or....get a new sensor event, normalized to uTesla */
-  sensors_event_t event;
-  sensor.getEvent(&event);
-  /* Display the results (magnetic field is measured in uTesla) */
-  Serial.print("X: "); Serial.print(event.magnetic.x);
-  Serial.print(" \tY: "); Serial.print(event.magnetic.y);
-  Serial.print(" \tZ: "); Serial.print(event.magnetic.z);
-  Serial.println(" uTesla ");
+  // delay(50);
 
-  delay(500);
+  // /* Or....get a new sensor event, normalized to uTesla */
+  // sensors_event_t event;
+  // sensor.getEvent(&event);
+  // /* Display the results (magnetic field is measured in uTesla) */
+  // Serial.print("X: "); Serial.print(event.magnetic.x);
+  // Serial.print(" \tY: "); Serial.print(event.magnetic.y);
+  // Serial.print(" \tZ: "); Serial.print(event.magnetic.z);
+  // Serial.println(" uTesla ");
+
+  // delay(500);
 }

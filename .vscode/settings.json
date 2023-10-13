@@ -18,5 +18,6 @@
     },
 
     "latex-workshop.latex.autoBuild.run": "onFileChange",
-    "latex-workshop.latex.outDir": "bin"
+    "latex-workshop.latex.outDir": "bin",
+    "ros.distro": "humble"
 }
