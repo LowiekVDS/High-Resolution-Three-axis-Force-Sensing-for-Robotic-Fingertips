@@ -152,6 +152,22 @@ bool Adafruit_MLX90393::setGain(mlx90393_gain_t gain) {
   return writeRegister(MLX90393_CONF1, data);
 }
 
+bool Adafruit_MLX90393::setTemperatureCompensation(bool enable) {
+  uint16_t data;
+  readRegister(MLX90393_CONF2, &data);
+
+  // mask off tcmp_en bit
+  data &= ~0x0400;
+
+  // set trigint bit if desired
+  if (enable) {
+    /* Set the INT, highest bit */
+    data |= 0x0400;
+  }
+
+  return writeRegister(MLX90393_CONF2, data);
+}
+
 /**
  * Gets the current sensor gain.
  *
@@ -305,6 +321,32 @@ bool Adafruit_MLX90393::startSingleMeasurement(void) {
     return true;
   }
   return false;
+}
+
+/**
+ * Reads data from data register & returns the results.
+ *
+ * @param x     Pointer to where the 'x' value should be stored.
+ * @param y     Pointer to where the 'y' value should be stored.
+ * @param z     Pointer to where the 'z' value should be stored.
+ *
+ * @return True on command success
+ */
+bool Adafruit_MLX90393::readRawMeasurement(int16_t *x, int16_t *y, int16_t *z) {
+  uint8_t tx[1] = {MLX90393_REG_RM | MLX90393_AXIS_ALL_T};
+  uint8_t rx[6] = {0};
+
+  /* Read a single data sample. */
+  if (transceive(tx, sizeof(tx), rx, sizeof(rx), 0) != MLX90393_STATUS_OK) {
+    return false;
+  }
+
+  /* Convert data to uT and float. */
+  *x = (rx[0] << 8) | rx[1];
+  *y = (rx[2] << 8) | rx[3];
+  *z = (rx[4] << 8) | rx[5];
+
+  return true;
 }
 
 /**

@@ -26,6 +26,7 @@
 #define MLX90393_DEFAULT_ADDR (0x0C) /* Can also be 0x18, depending on IC */
 
 #define MLX90393_AXIS_ALL (0x0E)      /**< X+Y+Z axis bits for commands. */
+#define MLX90393_AXIS_ALL_T (0x0F)      /**< X+Y+Z+T axis bits for commands. */
 #define MLX90393_CONF1 (0x00)         /**< Gain */
 #define MLX90393_CONF2 (0x01)         /**< Burst, comm mode */
 #define MLX90393_CONF3 (0x02)         /**< Oversampling, filter, res. */
@@ -177,6 +178,13 @@ public:
 
   bool reset(void);
   bool exitMode(void);
+
+  bool readRawMeasurement(int16_t *x, int16_t *y, int16_t *z);
+  void waitForConversion() {
+    delay(mlx90393_tconv[_dig_filt][_osr] + 10);
+  }
+
+  bool setTemperatureCompensation(bool enable);
 
   bool readMeasurement(float *x, float *y, float *z);
   bool startSingleMeasurement(void);
