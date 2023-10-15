@@ -4,4 +4,4 @@
 .vscode/launch.json
 .vscode/ipch
 *.csv
-__pycache__/*
+__pycache__/*.pyc
