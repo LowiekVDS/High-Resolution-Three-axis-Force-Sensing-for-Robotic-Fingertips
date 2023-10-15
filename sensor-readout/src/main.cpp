@@ -14,6 +14,7 @@
 #define TAIL_SIZE 0
 #define SUBFRAME_SIZE 6
 #define I2C_SPEED 400000 // in kHz
+#define EXTRA_DELAY 3000
 
 
 SensorArray sensorArray(I2C_SPEED);
@@ -86,6 +87,8 @@ void setup(void)
     Serial.println("[WARNING]> Idle wait time is negative, which means the system is underutilized or constrained by Serial speed. Please reconfigure");
     idle_time_us = 0.0;
   }  
+
+  idle_time_us += EXTRA_DELAY;
 }
 
 void loop(void)
@@ -121,7 +124,6 @@ void loop(void)
   }
 
   delayMicroseconds(idle_time_us);
-  delay(1);
 
   // Read measurements data
   for (int i = 0; i < sensorArray.getNumberOfSensors(); i++) {
