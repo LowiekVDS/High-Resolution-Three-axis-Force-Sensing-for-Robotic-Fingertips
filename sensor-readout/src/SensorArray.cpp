@@ -1,11 +1,5 @@
 #include "SensorArray.h"
 
-SensorArray::SensorArray() {
-    sensors = nullptr;
-    sensorData = nullptr;
-    numSensors = 0;
-}
-
 bool SensorArray::readData(int16_t *x, int16_t *y, int16_t *z) {
 
   // First start all measurements
@@ -38,7 +32,7 @@ bool SensorArray::addSensor(uint8_t address) {
 
     // Add the new sensor
     newSensors[numSensors] = Adafruit_MLX90393();
-    if (newSensors[numSensors].begin_I2C(address)) {
+    if (newSensors[numSensors].begin_I2C(address, this->speed)) {
         sensors = newSensors;
         sensorData = newSensorData;
         numSensors++;

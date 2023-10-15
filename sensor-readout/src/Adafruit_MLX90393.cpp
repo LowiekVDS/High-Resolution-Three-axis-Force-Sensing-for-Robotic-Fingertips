@@ -30,10 +30,12 @@ Adafruit_MLX90393::Adafruit_MLX90393(void) {}
  *            The Wire object to be used for I2C connections.
  *    @return True if initialization was successful, otherwise false.
  */
-bool Adafruit_MLX90393::begin_I2C(uint8_t i2c_addr, TwoWire *wire) {
+bool Adafruit_MLX90393::begin_I2C(uint8_t i2c_addr, uint32_t speed, TwoWire *wire) {
   if (i2c_dev) {
     delete i2c_dev;
   }
+
+  wire->setClock(speed);
 
   if (!i2c_dev) {
     i2c_dev = new Adafruit_I2CDevice(i2c_addr, wire);
@@ -76,8 +78,6 @@ bool Adafruit_MLX90393::_init(void) {
 
   if (!reset())
     return false;
-
-  delay(1000);
 
   /* Set gain and sensor config. */
   if (!setGain(MLX90393_GAIN_1X)) {
@@ -333,7 +333,7 @@ bool Adafruit_MLX90393::startSingleMeasurement(void) {
  * @return True on command success
  */
 bool Adafruit_MLX90393::readRawMeasurement(int16_t *x, int16_t *y, int16_t *z) {
-  uint8_t tx[1] = {MLX90393_REG_RM | MLX90393_AXIS_ALL_T};
+  uint8_t tx[1] = {MLX90393_REG_RM | MLX90393_AXIS_ALL};
   uint8_t rx[6] = {0};
 
   /* Read a single data sample. */
@@ -483,7 +483,8 @@ uint8_t Adafruit_MLX90393::transceive(uint8_t *txbuf, uint8_t txlen,
 
   if (i2c_dev) {
     /* Write stage */
-    if (!i2c_dev->write(txbuf, txlen, false)) {
+    //! STOP SHOULD BE 'TRUE' FOR MEGAAVR, 'FALSE' FOR MBEDOS
+    if (!i2c_dev->write(txbuf, txlen, true)) {
       return MLX90393_STATUS_ERROR;
     }
     delay(interdelay);

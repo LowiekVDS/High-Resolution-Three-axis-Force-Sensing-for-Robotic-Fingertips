@@ -173,7 +173,7 @@ class Adafruit_MLX90393 : public Adafruit_Sensor {
 public:
   Adafruit_MLX90393();
   bool begin_I2C(uint8_t i2c_addr = MLX90393_DEFAULT_ADDR,
-                 TwoWire *wire = &Wire);
+                  uint32_t speed = 400000, TwoWire *wire = &Wire);
   bool begin_SPI(uint8_t cs_pin, SPIClass *theSPI = &SPI);
 
   bool reset(void);

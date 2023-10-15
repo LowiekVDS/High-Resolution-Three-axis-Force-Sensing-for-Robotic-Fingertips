@@ -2,11 +2,17 @@
 #define SENSORARRAY_H
 
 #include <Adafruit_MLX90393.h>
+#include <Wire.h>
 
 class SensorArray
 {
 public:
-    SensorArray();
+    SensorArray(uint32_t speed) : speed(speed)
+    {
+        sensors = nullptr;
+        sensorData = nullptr;
+        numSensors = 0;
+    };
 
     /**
      * @brief adds a sensor, given the address
@@ -19,7 +25,7 @@ public:
 
     uint8_t getNumberOfSensors() { return this->numSensors; };
 
-    bool readData(int16_t *x, int16_t *y, int16_t *z); 
+    bool readData(int16_t *x, int16_t *y, int16_t *z);
 
     Adafruit_MLX90393 *getSensor(uint8_t id)
     {
@@ -33,6 +39,7 @@ private:
     Adafruit_MLX90393 *sensors;
     float *sensorData;
     uint8_t numSensors;
+    uint32_t speed;
 };
 
 #endif
