@@ -483,8 +483,11 @@ uint8_t Adafruit_MLX90393::transceive(uint8_t *txbuf, uint8_t txlen,
 
   if (i2c_dev) {
     /* Write stage */
+    
     //! STOP SHOULD BE 'TRUE' FOR MEGAAVR, 'FALSE' FOR MBEDOS
-    if (!i2c_dev->write(txbuf, txlen, true)) {
+    bool do_stop = ARDUINO_ARCH_MEGAAVR;
+
+    if (!i2c_dev->write(txbuf, txlen, do_stop)) {
       return MLX90393_STATUS_ERROR;
     }
     delay(interdelay);
