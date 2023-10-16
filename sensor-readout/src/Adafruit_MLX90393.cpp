@@ -485,7 +485,11 @@ uint8_t Adafruit_MLX90393::transceive(uint8_t *txbuf, uint8_t txlen,
     /* Write stage */
     
     //! STOP SHOULD BE 'TRUE' FOR MEGAAVR, 'FALSE' FOR MBEDOS
-    bool do_stop = ARDUINO_ARCH_MEGAAVR;
+    #ifdef ARDUINO_ARCH_MEGAAVR
+    bool do_stop = true;
+    #else
+    bool do_stop = false;
+    #endif
 
     if (!i2c_dev->write(txbuf, txlen, do_stop)) {
       return MLX90393_STATUS_ERROR;
