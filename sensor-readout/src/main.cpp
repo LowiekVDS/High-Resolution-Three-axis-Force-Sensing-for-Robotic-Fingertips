@@ -7,14 +7,13 @@
 #define BAUD_RATE 115200
 #define MLX_OSR MLX90393_OSR_2
 #define MLX_DIG_FILT MLX90393_FILTER_1
-#define GUARD_INTERVAL 2000 // in us
 #define START_BYTE 0xAA
 
 #define HEADER_SIZE 1
 #define TAIL_SIZE 0
 #define SUBFRAME_SIZE 6
 #define I2C_SPEED 400000 // in kHz
-#define EXTRA_DELAY 3000
+#define EXTRA_DELAY 0
 
 
 SensorArray sensorArray(I2C_SPEED);
