@@ -42,7 +42,7 @@ started = False
 with open( os.path.join(os.path.dirname(os.path.realpath(__file__)), f'data/{args.name}_{timestamp_str}.csv'), 'w', newline='') as csvfile:        
         
     csv_writer = csv.writer(csvfile)
-    csv_writer.writerow(["t_wall [s]", "t_robot [s]" "F_x [N]", "F_y [N]", "F_z [N]", "T_x [Nm]", "T_y [Nm]", "T_z [Nm]"])  # Header row
+    csv_writer.writerow(["t_wall [s]", "t_robot [s]", "F_x [N]", "F_y [N]", "F_z [N]", "T_x [Nm]", "T_y [Nm]", "T_z [Nm]"])  # Header row
     
     if ZERO_SENSOR_ON_START:
         rtde_c.zeroFtSensor()
