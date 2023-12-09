@@ -32,7 +32,7 @@ async def send_data_to_websocket(data):
 now = datetime.datetime.now()
 timestamp_str = now.strftime("%Y%m%d_%H%M%S")
 
-with open( os.path.join(os.path.dirname(os.path.realpath(__file__)), f'data/{args.name}_{timestamp_str}.csv'), 'w', newline='') as csvfile:    
+with open( os.path.join(os.path.dirname(os.path.realpath(__file__)), f'data/{args.name}.csv'), 'w', newline='') as csvfile:    
     csv_writer = csv.writer(csvfile)
     csv_writer.writerow(["t_wall [s]", "X0 [uT]", "Y0 [uT]", "Z0 [uT]", "X1 [uT]", "Y1 [uT]", "Z1 [uT]", "X2 [uT]", "Y2 [uT]", "Z2 [uT]", "X3 [uT]", "Y3 [uT]", "Z3 [uT]"])  # Header row
 
