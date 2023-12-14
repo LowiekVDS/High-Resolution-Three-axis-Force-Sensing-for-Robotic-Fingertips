@@ -20,5 +20,5 @@
     "latex-workshop.latex.autoBuild.run": "onFileChange",
     "latex-workshop.latex.outDir": "bin",
     "ros.distro": "humble",
-    "python.analysis.autoImportCompletions": true
+    "python.analysis.autoImportCompletions": false
 }
