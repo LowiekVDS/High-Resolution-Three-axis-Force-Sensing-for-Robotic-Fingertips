@@ -1,6 +1,6 @@
 #include "SensorArray.h"
 
-bool SensorArray::readData(int16_t *x, int16_t *y, int16_t *z) {
+bool SensorArray::readData(uint16_t *x, uint16_t *y, uint16_t *z) {
 
   // First start all measurements
   for (int i = 0; i < this->numSensors; i++) {
@@ -12,7 +12,7 @@ bool SensorArray::readData(int16_t *x, int16_t *y, int16_t *z) {
   this->sensors[0].waitForConversion();
 
   // Now get data
-  for (int i = 0; i < this->numSensors; i++) {
+  for (uint i = 0; i < this->numSensors; i++) {
     if (!this->sensors[i].readRawMeasurement(x + i, y + i, z + i))
       return false;
   }

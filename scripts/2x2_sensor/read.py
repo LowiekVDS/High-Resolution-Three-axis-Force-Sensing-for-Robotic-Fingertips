@@ -9,8 +9,8 @@ import datetime
 import os
 import argparse
 
-GAIN = 3
-RESOLUTION = 3
+GAIN = 4
+RESOLUTION = 0
 BAUD = 115200
 COM = '/dev/ttyACM0'
 ENABLE_WS = True
@@ -21,7 +21,7 @@ t0 = time.time()
 # Define the WebSocket server URL
 websocket_server_url = "ws://localhost:9871"
 
-parser = argparse.ArgumentParser(description='Read FT300 force torque sensor data and save it to a CSV file.')
+parser = argparse.ArgumentParser(description='Read sensor data and save it to a CSV file.')
 parser.add_argument('name', type=str, help='name of the capture file')
 args = parser.parse_args()
 
@@ -32,7 +32,7 @@ async def send_data_to_websocket(data):
 now = datetime.datetime.now()
 timestamp_str = now.strftime("%Y%m%d_%H%M%S")
 
-with open( os.path.join(os.path.dirname(os.path.realpath(__file__)), f'data/{args.name}.csv'), 'w', newline='') as csvfile:    
+with open( os.path.join(os.path.dirname(os.path.realpath(__file__)), f'../../data/raw/sensor/{args.name}.csv'), 'w', newline='') as csvfile:    
     csv_writer = csv.writer(csvfile)
     csv_writer.writerow(["t_wall [s]", "X0 [uT]", "Y0 [uT]", "Z0 [uT]", "X1 [uT]", "Y1 [uT]", "Z1 [uT]", "X2 [uT]", "Y2 [uT]", "Z2 [uT]", "X3 [uT]", "Y3 [uT]", "Z3 [uT]"])  # Header row
 
@@ -42,18 +42,18 @@ with open( os.path.join(os.path.dirname(os.path.realpath(__file__)), f'data/{arg
             data_bytes = ser.read(6 * 4)
             row = {"t": time.time()}
 
-            # print(f"Rate: {1 / (time.time() - t0)}Hz")
+            print(f"Rate: {1 / (time.time() - t0)}Hz")
 
             t0 = time.time()
 
             for i in range(4):
-                x = (data_bytes[i * 3 * 2] << 8) + data_bytes[i * 3 * 2 + 1] - 16384
-                y = (data_bytes[i * 3 * 2 + 2] << 8) + data_bytes[i * 3 * 2 + 3] - 16384
-                z = (data_bytes[i * 3 * 2 + 4] << 8) + data_bytes[i * 3 * 2 + 5] - 16384
+                x = (data_bytes[i * 3 * 2] << 8) + data_bytes[i * 3 * 2 + 1] - 32768
+                y = (data_bytes[i * 3 * 2 + 2] << 8) + data_bytes[i * 3 * 2 + 3] - 32768
+                z = (data_bytes[i * 3 * 2 + 4] << 8) + data_bytes[i * 3 * 2 + 5] - 32768
 
-                x *= mlx90393_lsb_lookup[0][GAIN][RESOLUTION][0]
-                y *= mlx90393_lsb_lookup[0][GAIN][RESOLUTION][0]
-                z *= mlx90393_lsb_lookup[0][GAIN][RESOLUTION][1]
+                x *= mlx90393_lsb_lookup[0][GAIN][RESOLUTION][0] 
+                y *= mlx90393_lsb_lookup[0][GAIN][RESOLUTION][0] 
+                z *= mlx90393_lsb_lookup[0][GAIN][RESOLUTION][1] 
 
                 row[f"X{i}"] = x
                 row[f"Y{i}"] = y

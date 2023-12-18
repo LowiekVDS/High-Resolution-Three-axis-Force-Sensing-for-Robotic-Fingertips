@@ -31,6 +31,11 @@
 #define MLX90393_CONF2 (0x01)         /**< Burst, comm mode */
 #define MLX90393_CONF3 (0x02)         /**< Oversampling, filter, res. */
 #define MLX90393_CONF4 (0x03)         /**< Sensitivty drift. */
+
+#define MLX90390_CONF5 (0X04)
+#define MLX90390_CONF6 (0X05)
+#define MLX90390_CONF7 (0X06)
+
 #define MLX90393_GAIN_SHIFT (4)       /**< Left-shift for gain bits. */
 #define MLX90393_HALL_CONF (0x0C)     /**< Hall plate spinning rate adj. */
 #define MLX90393_STATUS_OK (0x00)     /**< OK value for status response. */
@@ -179,7 +184,10 @@ public:
   bool reset(void);
   bool exitMode(void);
 
-  bool readRawMeasurement(int16_t *x, int16_t *y, int16_t *z);
+  bool setConstantOffset(enum mlx90393_axis axis,
+                                          uint16_t offset);
+
+  bool readRawMeasurement(uint16_t *x, uint16_t *y, uint16_t *z);
   void waitForConversion() {
     delay(mlx90393_tconv[_dig_filt][_osr] + 10);
   }

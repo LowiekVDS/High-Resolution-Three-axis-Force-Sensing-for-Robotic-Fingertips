@@ -25,7 +25,7 @@ public:
 
     uint8_t getNumberOfSensors() { return this->numSensors; };
 
-    bool readData(int16_t *x, int16_t *y, int16_t *z);
+    bool readData(uint16_t *x, uint16_t *y, uint16_t *z);
 
     Adafruit_MLX90393 *getSensor(uint8_t id)
     {

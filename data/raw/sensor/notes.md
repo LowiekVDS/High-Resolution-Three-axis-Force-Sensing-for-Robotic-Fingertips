@@ -1,0 +1,3 @@
+- Alles van 20231218: headerkant langs X-
+- Behalve H1_5-s0-20231218-X: daar is headerkant langs Y+ 
+- H1_5-s0-20231218-004: is alle sensoren in 1 keer tesamen. Maar moet zelf nog opsplitsen...

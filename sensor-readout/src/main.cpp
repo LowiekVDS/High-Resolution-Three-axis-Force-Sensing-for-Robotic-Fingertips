@@ -18,7 +18,7 @@
 
 SensorArray sensorArray(I2C_SPEED);
 
-int16_t x[NR_OF_SENSORS], y[NR_OF_SENSORS], z[NR_OF_SENSORS];
+uint16_t x[NR_OF_SENSORS], y[NR_OF_SENSORS], z[NR_OF_SENSORS];
 
 long conversion_time_us, comm_time_us, idle_time_us = 0;
 
@@ -60,12 +60,24 @@ void setup(void)
     auto sensor = sensorArray.getSensor(i);
 
     // Set gain
-    sensor->setGain(MLX90393_GAIN_2_5X);
+    // For 1.5 and 2 mm
+    sensor->setGain(MLX90393_GAIN_1X);
+
+    // For 1mm
+    // sensor->setGain(MLX90393_GAIN_1_33X);
 
     // Set resolution, per axis
-    sensor->setResolution(MLX90393_X, MLX90393_RES_19);
-    sensor->setResolution(MLX90393_Y, MLX90393_RES_19);
-    sensor->setResolution(MLX90393_Z, MLX90393_RES_19);
+
+    // For 1mm and 1.5mm
+    sensor->setResolution(MLX90393_X, MLX90393_RES_16);
+    sensor->setResolution(MLX90393_Y, MLX90393_RES_16);
+    sensor->setResolution(MLX90393_Z, MLX90393_RES_16);
+
+
+    // // For 2mm
+    // sensor->setResolution(MLX90393_X, MLX90393_RES_19);
+    // sensor->setResolution(MLX90393_Y, MLX90393_RES_19);
+    // sensor->setResolution(MLX90393_Z, MLX90393_RES_19);
 
     // Set oversampling
     sensor->setOversampling(MLX_OSR);
@@ -88,13 +100,50 @@ void setup(void)
   }  
 
   idle_time_us += EXTRA_DELAY;
+
+  // Read sensors once, then print value
+
+  for (int i = 0; i < sensorArray.getNumberOfSensors(); i++)
+  {
+    if (!sensorArray.getSensor(i)->startSingleMeasurement())
+    {
+      Serial.println("[WARNING]> Sensor measurement failed");
+    }
+  }
+
+  delay(100);
+
+  for (uint i = 0; i < sensorArray.getNumberOfSensors(); i++)
+  {
+    uint16_t x, y, z;
+    if (!sensorArray.getSensor(i)->readRawMeasurement(&x, &y, &z)) {
+      Serial.println("ERROR");
+    }
+    
+    if (!sensorArray.getSensor(i)->setConstantOffset(MLX90393_X, x - 32768)) {
+      Serial.println("ERROR");
+      while (1) {}
+    }
+    if (!sensorArray.getSensor(i)->setConstantOffset(MLX90393_Y, y - 32768)) {
+      Serial.println("ERROR");
+      while (1) {}
+    }
+    if (!sensorArray.getSensor(i)->setConstantOffset(MLX90393_Z, z - 32768)) {
+      Serial.println("ERROR");
+      while (1) {}
+    }
+    // sensorArray.getSensor(i)->setConstantOffset(MLX90393_Y, 32768 - y);
+    // sensorArray.getSensor(i)->setConstantOffset(MLX90393_Z, 32768 - z);
+  }
+
+  // while (1){}
 }
 
 void loop(void)
 {
 
   // Read loop. First step is to start measurements
-  for (int i = 0; i < sensorArray.getNumberOfSensors(); i++) {
+  for (uint i = 0; i < sensorArray.getNumberOfSensors(); i++) {
     if (!sensorArray.getSensor(i)->startSingleMeasurement()) {
       Serial.println("[WARNING]> Sensor measurement failed");
     }
@@ -106,7 +155,7 @@ void loop(void)
 #ifndef DEBUG    
     Serial.write(START_BYTE);
 
-    for (int i = 0; i < NR_OF_SENSORS; i++) {
+    for (uint i = 0; i < NR_OF_SENSORS; i++) {
       Serial.write((x[i] >> 8) & 0xFF);
       Serial.write(x[i] & 0xFF);
 
@@ -125,10 +174,10 @@ void loop(void)
   delayMicroseconds(idle_time_us);
 
   // Read measurements data
-  for (int i = 0; i < sensorArray.getNumberOfSensors(); i++) {
+  for (uint i = 0; i < sensorArray.getNumberOfSensors(); i++) {
 
 #ifndef DEBUG
-    if (!sensorArray.getSensor(i)->readRawMeasurement(x + i, y + i, z + i)) {
+    if (!sensorArray.getSensor(i)->readRawMeasurement( x + i, y + i, z + i)) {
       Serial.print("Something went wrong in sensor ");
       Serial.println(i);
     }

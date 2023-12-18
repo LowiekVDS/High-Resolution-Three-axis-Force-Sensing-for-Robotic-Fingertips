@@ -3,7 +3,11 @@ import os
 import subprocess
 import os 
 
-name = input("Enter a name: ")
+import argparse
+parser = argparse.ArgumentParser(description='Read FT300 force torque sensor data and save it to a CSV file.')
+parser.add_argument('name', type=str, help='name of the capture file')
+args = parser.parse_args()
+name = args.name
 
 # Run first Python process
 p1 = subprocess.Popen(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "../2x2_sensor/read.py"), name])

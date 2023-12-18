@@ -216,6 +216,29 @@ bool Adafruit_MLX90393::setResolution(enum mlx90393_axis axis,
   return writeRegister(MLX90393_CONF3, data);
 }
 
+bool Adafruit_MLX90393::setConstantOffset(enum mlx90393_axis axis,
+                                          uint16_t offset) {
+  int reg = 0;
+
+  switch (axis) {
+  case MLX90393_X:
+    reg = MLX90390_CONF5;
+    break;
+  case MLX90393_Y:
+        reg = MLX90390_CONF6;
+
+    break;
+  case MLX90393_Z:
+       reg = MLX90390_CONF7;
+
+    break;
+  }
+
+  Serial.println(offset);
+
+  return writeRegister(reg, offset);
+}
+
 /**
  * Gets the current sensor resolution.
  * @param axis  The axis to get.
@@ -332,7 +355,7 @@ bool Adafruit_MLX90393::startSingleMeasurement(void) {
  *
  * @return True on command success
  */
-bool Adafruit_MLX90393::readRawMeasurement(int16_t *x, int16_t *y, int16_t *z) {
+bool Adafruit_MLX90393::readRawMeasurement(uint16_t *x, uint16_t *y, uint16_t *z) {
   uint8_t tx[1] = {MLX90393_REG_RM | MLX90393_AXIS_ALL};
   uint8_t rx[6] = {0};
 
