@@ -19,15 +19,28 @@ import os
 import argparse
 import dill
 
-ARRAY_SIZE = 4
-MODEL_NAME = "H1_5-2x2-005"
-WINDOW_SIZE = 100
-SCALE_FACTOR = 1000
-GAIN = 4
-RESOLUTION = 0
-BAUD = 115200
-COM = '/dev/ttyACM0'
-ENABLE_WS = True
+#
+#
+# START EDIT PARAMETERS
+#
+#
+
+ARRAY_SIZE = 4 # Number of sensors in the array
+MODEL_NAME = "H1_5-2x2-005" # Name of the model to load for processing
+WINDOW_SIZE = 100 # Number of samples to collect before starting to predict
+SCALE_FACTOR = 1000 # Scale factor for the input data
+
+GAIN = 4 # Gain setting (same as firmware)
+RESOLUTION = 0 # Resolution setting (same as firmware)
+BAUD = 115200 # Baud rate
+COM = '/dev/ttyACM0' # Serial port
+ENABLE_WS = True # Enable WebSocket server. Disable if not using websocket. Script will crash otherwise.
+
+#
+#
+# END EDIT PARAMETERS
+#
+#
 
 # Load the models
 taxel_models = dill.load(open(os.path.join(os.getcwd(), f'../../models/PolyLinear-Deg4/{MODEL_NAME}'), 'rb'))

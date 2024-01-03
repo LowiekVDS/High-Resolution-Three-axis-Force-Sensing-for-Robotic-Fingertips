@@ -9,11 +9,23 @@ import datetime
 import os
 import argparse
 
-GAIN = 4
-RESOLUTION = 0
-BAUD = 115200
-COM = '/dev/ttyACM0'
-ENABLE_WS = True
+#
+#
+# START EDIT PARAMETERS
+#
+#
+
+GAIN = 4 # Gain setting (same as firmware)
+RESOLUTION = 0 # Resolution setting (same as firmware)
+BAUD = 115200 # Baud rate
+COM = '/dev/ttyACM0' # Serial port
+ENABLE_WS = True # Enable WebSocket server. Disable if not using websocket. Script will crash otherwise.
+
+#
+#
+# END EDIT PARAMETERS
+#
+#
 
 ser = serial.Serial(COM, BAUD) 
 t0 = time.time()

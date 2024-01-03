@@ -2,8 +2,12 @@ import subprocess
 import os 
 import subprocess
 import os 
-
 import argparse
+
+"""
+This script runs both the read scripts from the 2x2 sensor and the FT300-S force torque sensor.
+"""
+
 parser = argparse.ArgumentParser(description='Read FT300 force torque sensor data and save it to a CSV file.')
 parser.add_argument('name', type=str, help='name of the capture file')
 args = parser.parse_args()

@@ -10,10 +10,22 @@ import asyncio
 import datetime
 import os
 
-ROBOT_HOST = "10.42.0.162"
-ENABLE_WS = True
-ZERO_SENSOR_ON_START = True
-SAMPLE_FREQUENCY = 500
+#
+#
+# START EDIT PARAMETERS
+#
+#
+
+ROBOT_HOST = "10.42.0.162" # IP address of the robot
+ENABLE_WS = True # Enable WebSocket server. Disable if not using websocket. Script will crash otherwise.
+ZERO_SENSOR_ON_START = True # Zero the sensor on start
+SAMPLE_FREQUENCY = 500 # Sample frequency in Hz
+
+#
+#
+# END EDIT PARAMETERS
+#
+#
 
 parser = argparse.ArgumentParser(description='Read FT300 force torque sensor data and save it to a CSV file.')
 parser.add_argument('name', type=str, help='name of the capture file')
