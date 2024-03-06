@@ -28,7 +28,7 @@ SAMPLE_FREQUENCY = 500 # Sample frequency in Hz
 #
 #
 
-def read_and_publish_tf_sensor_sync(rtde_r, name, que):
+def read_and_publish_tf_sensor_sync(controller, name, que):
     t0 = time.time()
 
     # Define the UDP server address and port
@@ -44,9 +44,9 @@ def read_and_publish_tf_sensor_sync(rtde_r, name, que):
     
         while que.empty(): 
 
-            x, y, z, rx, ry, rz = rtde_r.getActualTCPPose()
-            fx, fy, fz, tx, ty, tz = rtde_r.getActualTCPForce()
-            t = rtde_r.getTimestamp()
+            x, y, z, rx, ry, rz = controller.get_sensor_pose()
+            fx, fy, fz, tx, ty, tz = controller.get_sensor_force()
+            t = controller.rtde_r.getTimestamp()
 
             t0 = time.time()        
 

@@ -27,56 +27,65 @@ def get_square_corners(a, b, c, width_x, width_y, tool_width):
     corner3 = [corner1[0] + (dx1 + dx2) * width_x, corner1[1] + (dy1 + dy2) * width_y]    
     corner4 = [corner1[0] + dx2 * width_x, corner1[1] + dy2 * width_y]
   
-    return np.array([corner1, corner2, corner3, corner4]), ((dx1, dy1), (dx2, dy2))
+    return np.array([corner4, corner1, corner2, corner3]), ((dx1, dy1), (dx2, dy2))
   
-def calculate_grid_on_square(corners, grid_size):
-    dx1, dy1 = corners[1] - corners[0]
-    dx2, dy2 = corners[3] - corners[0]
-    dx1 /= grid_size
-    dy1 /= grid_size
-    dx2 /= grid_size
-    dy2 /= grid_size
+def calculate_grid_on_square(corners, offset, grid_size, pitch):
+
+    # Calculate the direction of the sides
+    dx_horiz, dy_horiz = corners[1] - corners[0]
+    dx_vert, dy_vert = corners[3] - corners[0]
+
+    # Morm dx, dy by pitch
+    norm = np.sqrt(dx_horiz**2 + dy_horiz**2) / pitch
+    dx_horiz /= norm
+    dy_horiz /= norm
+    norm = np.sqrt(dx_vert**2 + dy_vert**2) / pitch
+    dx_vert /= norm
+    dy_vert /= norm
     
-    start_point = corners[0] + np.array([(dx1 + dx2) / 2, (dy1 + dy2) / 2])
+    # Start point is just an offset from the first corner
+    start_point = corners[0] + np.array([(dx_horiz + dx_vert) / pitch * offset[0], (dy_horiz + dy_vert) / pitch * offset[1]])
     
-    grid = np.zeros((grid_size, grid_size, 2))
-    for i in range(grid_size):
-        for j in range(grid_size):
-            grid[i, j] = start_point + np.array([i * dx1 + j * dx2, i * dy1 + j * dy2])
+    grid = np.zeros((grid_size[1], grid_size[0], 2))
+    for i in range(grid_size[0]):
+        for j in range(grid_size[1]):
+            grid[j, i] = start_point + np.array([i * dx_horiz + j * dx_vert, i * dy_horiz + j * dy_vert])
     
     return grid
 
-from tools.tf_reader import *
-from tools.sensor_reader import *
-from threading import Thread
-from queue import Queue
-
-class MeasuringInterface:
+def rpy2rv(roll,pitch,yaw):
   
-    def __init__(self, rtde_r) -> None:
-        self.tf_q = Queue()
-        self.sensor_q = Queue()
-        self.rtde_r = rtde_r
+  alpha = yaw
+  beta = pitch
+  gamma = roll
+  
+  ca = np.cos(alpha)
+  cb = np.cos(beta)
+  cg = np.cos(gamma)
+  sa = np.sin(alpha)
+  sb = np.sin(beta)
+  sg = np.sin(gamma)
+  
+  r11 = ca*cb
+  r12 = ca*sb*sg-sa*cg
+  r13 = ca*sb*cg+sa*sg
+  r21 = sa*cb
+  r22 = sa*sb*sg+ca*cg
+  r23 = sa*sb*cg-ca*sg
+  r31 = -sb
+  r32 = cb*sg
+  r33 = cb*cg
+  
+  theta = np.arccos((r11+r22+r33-1)/2)
+  sth = np.sin(theta)
+  kx = (r32-r23)/(2*sth)
+  ky = (r13-r31)/(2*sth)
+  kz = (r21-r12)/(2*sth)
+  
+  rv = np.zeros(3)
+  rv[0] = theta*kx
+  rv[1] = theta*ky
+  rv[2] = theta*kz
+  
+  return rv
 
-    def start_measuring(self, name):
-        
-        self.tf_q = Queue()
-        self.sensor_q = Queue()
-
-        # Start sensor readers
-        self.tf_reader_thread = Thread(target=read_and_publish_tf_sensor_sync, args=(self.rtde_r, name, self.tf_q, ))
-        self.tf_reader_thread.start()
-
-        self.sensor_reader_thread = Thread(target=read_and_publish_sensor_sync, args=(name, self.sensor_q, ))
-        self.sensor_reader_thread.start()
-      
-    def stop_measuring(self):
-        self.tf_q.put(None)
-        self.sensor_q.put(None)
-        
-        self.sensor_reader_thread.join()
-        self.tf_reader_thread.join()
-        
-        self.tf_q.get()
-        self.sensor_q.get()
-              

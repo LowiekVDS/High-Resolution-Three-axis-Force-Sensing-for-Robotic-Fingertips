@@ -28,6 +28,7 @@ class SingleArmOmplPlanner(SingleArmMotionPlanner):
         self,
         is_state_valid_fn: JointConfigurationCheckerType,
         inverse_kinematics_fn: Optional[InverseKinematicsType] = None,
+        forward_kinematics_fn = None,
         joint_bounds: Tuple[JointConfigurationType, JointConfigurationType] = None,
         max_planning_time: float = 5.0,
         num_interpolated_states: Optional[int] = 500,
@@ -44,6 +45,7 @@ class SingleArmOmplPlanner(SingleArmMotionPlanner):
         """
         self.is_state_valid_fn = is_state_valid_fn
         self.inverse_kinematics_fn = inverse_kinematics_fn
+        self.forward_kinematics_fn = forward_kinematics_fn
         self.joint_bounds = joint_bounds
 
         # Currently we only planning for 6 DoF arms
@@ -166,7 +168,22 @@ class SingleArmOmplPlanner(SingleArmMotionPlanner):
         else:
             logger.info(f"Found {len(ik_solutions_within_bounds)}/{len(ik_solutions)} solutions within joint bounds.")
 
-        ik_solutions_valid = [s for s in ik_solutions_within_bounds if self.is_state_valid_fn(s)]
+        # Filter out invalid IK solutions (cause singularities)
+        ik_solutions_actually_valid = []
+        for ik_solution in ik_solutions_within_bounds:
+            
+            tf = self.forward_kinematics_fn(ik_solution)
+            
+            if np.allclose(tf, tcp_pose_in_base, atol=1e-3):
+                ik_solutions_actually_valid.append(ik_solution)
+        
+        if len(ik_solutions_actually_valid) == 0:
+            logger.info("No IK solutions are actually valid, returning None.")
+            return None
+        else:
+            logger.info(f"Found {len(ik_solutions_within_bounds)}/{len(ik_solutions)} solutions actually valid.")   
+
+        ik_solutions_valid = [s for s in ik_solutions_actually_valid if self.is_state_valid_fn(s)]
         if len(ik_solutions_valid) == 0:
             logger.info("All IK solutions within bounds are invalid, returning None.")
             return None

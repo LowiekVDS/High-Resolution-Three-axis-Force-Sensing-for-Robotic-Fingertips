@@ -1,4 +1,4 @@
-from ur_analytic_ik import ur3e
+from ur_analytic_ik import ur3e, ur5e
 from .robot_interface import RobotInterface
 import numpy as np
 from typing import List, Tuple
@@ -14,7 +14,7 @@ from tools.visualization import add_meshcat_triad
 
 class DrakeRobot(RobotInterface):
     
-    def __init__(self, diagram, context, arm_index, meshcat):
+    def __init__(self, diagram, context, arm_index, meshcat, tcp_transform, ur_ik):
  
         super().__init__()
         
@@ -24,11 +24,14 @@ class DrakeRobot(RobotInterface):
         self.diagram = diagram
         self.arm_index = arm_index
         self.meshcat = meshcat
+        self.tcp_transform = tcp_transform
+        self.ur_ik = ur_ik
     
     def publish_trajectory(
         self,
         joint_trajectory: Trajectory,
         time_trajectory: Trajectory,
+        step_function: callable = None,
     ):
         plant = self.diagram.plant()
         plant_context = plant.GetMyContextFromRoot(self.context)
@@ -44,6 +47,12 @@ class DrakeRobot(RobotInterface):
             q = joint_trajectory.value(time_trajectory.value(t).item())
             plant.SetPositions(plant_context, self.arm_index, q[0:6])
             self.diagram.ForcedPublish(self.context)
+
+            if step_function is not None:
+
+                # If step function returns False, then break
+                if not step_function(t):
+                    break
 
         self.meshcat.StopRecording()
         self.meshcat.PublishRecording()
@@ -71,6 +80,8 @@ class DrakeRobot(RobotInterface):
     def getTCPPose(self):
 
         joints = self.plant.GetPositions(self.plant_context)
-        transform = ur3e.forward_kinematics(joints[0], joints[1], joints[2], joints[3], joints[4], joints[5])
+        transform = self.ur_ik.forward_kinematics(joints[0], joints[1], joints[2], joints[3], joints[4], joints[5])
+        
+        transform = transform.dot(self.tcp_transform)
         
         return joints, transform

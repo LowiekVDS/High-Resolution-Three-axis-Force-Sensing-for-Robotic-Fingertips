@@ -7,18 +7,19 @@ from pydrake.math import RigidTransform, RollPitchYaw
 from pydrake.multibody.tree import ModelInstanceIndex
 from pydrake.planning import RobotDiagramBuilder
 
-def add_ur3e_and_table_to_builder(
+def add_ur_and_table_to_builder(
     robot_diagram_builder: RobotDiagramBuilder,
+    robot = "ur5e"
 ) -> Tuple[ModelInstanceIndex, ModelInstanceIndex]:
     plant = robot_diagram_builder.plant()
     parser = robot_diagram_builder.parser()
     parser.SetAutoRenaming(True)
 
     # Load URDF files
-    ur5e_urdf_path = airo_models.get_urdf_path("ur5e")
+    ur5e_urdf_path = airo_models.get_urdf_path(robot)
 
     table_thickness = 0.2
-    table_urdf_path = airo_models.box_urdf_path((2.0, 2.4, table_thickness), "table")
+    table_urdf_path = airo_models.box_urdf_path((2.0, 2.0, table_thickness), "table")
 
     arm_index = parser.AddModels(ur5e_urdf_path)[0]
     table_index = parser.AddModels(table_urdf_path)[0]

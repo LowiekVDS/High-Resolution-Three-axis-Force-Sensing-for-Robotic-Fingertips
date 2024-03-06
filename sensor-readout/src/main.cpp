@@ -83,7 +83,7 @@ void setup(void)
     sensor->setOversampling(MLX_OSR);
 
     // Enable temperature compensation
-    sensor->setTemperatureCompensation(true);
+    sensor->setTemperatureCompensation(false);
 
     // Set digital filtering
     sensor->setFilter(MLX_DIG_FILT);

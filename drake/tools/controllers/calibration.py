@@ -20,8 +20,6 @@ class CalibrationController:
         
         joints, transform = self.robot.getTCPPose()
         
-        print(transform)
-        
         transform[0:3, 3] += vector
         
         path = self.planner.plan_to_tcp_pose(joints, transform)
@@ -30,45 +28,52 @@ class CalibrationController:
         joint_trajectory, time_trajectory = time_parametrize_toppra(path, self.plant)
         
         return joint_trajectory, time_trajectory, transform
+    
+    def move_to(self, transform):
         
-    def home_probe(direction, speed, max_distance, robot):
+        joints, _ = self.robot.getTCPPose()
+        
+        path = self.planner.plan_to_tcp_pose(joints, transform)
+        
+        # Now time parametrize for safety
+        joint_trajectory, time_trajectory = time_parametrize_toppra(path, self.plant)
+        
+        return joint_trajectory, time_trajectory
+        
+    def home_probe(self, direction, speed, max_distance, robot):
         
         # Rescale direction to be a unit vector * max_distance. Then plan to that pose
         direction = direction / np.linalg.norm(direction) * max_distance
-        joints, transform = robot.getTCPPose()
-        print(transform)
+        joints, orig_ransform = robot.getTCPPose()
+        
+        transform = orig_ransform.copy()
         transform[0:3, 3] += direction
-        print(transform)
-        path = planner.plan_to_tcp_pose(joints, transform)
+
+        path = self.planner.plan_to_tcp_pose(joints, transform)
+        print(len(path))
+        
+        # Now time parametrize for safety
+        joint_trajectory, time_trajectory = time_parametrize_toppra(path, self.plant, joint_speed_limit=0.1)
         
         # First zero
         robot.zeroTFSensor()
         
-        # Then move in direction until force is detected
-        for joint_config in path:
-            
-            # Set the joints
-            robot.setJointPose(joint_config)
-            
-            # Then check for reaction force
+        # Then execute trajectory until force is detected
+        def step_function(t):
             tf = robot.getTFValue()
             force_magnitude = np.sqrt( tf[0]**2 + tf[1]**2 + tf[2]**2 )
             
             if force_magnitude > 0.1:
                 _, tcp = robot.getTCPPose()
                 print("Force detected! (x: {}, y: {}, z: {})".format(tcp[0, 3], tcp[1, 3], tcp[2, 3]))
-                
-                # Now also go back to the original position
-                transform[0:3, 3] -= direction
-                translate_probe(transform[0:3, 3] - tcp[0:3, 3], speed, robot)
-                
-                return True, tcp[0:3, 3]
+                return True
             
-            time.sleep(0.05)
-            
-        # Now also go back to the original position
-        transform[0:3, 3] -= direction
-        translate_probe(transform[0:3, 3] - tcp[0:3, 3], speed, robot)
-                
-        return False, None
+            return True
         
+        robot.publish_trajectory(joint_trajectory, time_trajectory, step_function)
+        
+        # Now also go back to the original position\
+        # jt, tt = self.move_to(orig_ransform)
+        # robot.publish_trajectory(jt, tt)\
+        
+        # TODO return something
