@@ -21,7 +21,7 @@ from .mlx import *
 #
 #
 
-GAIN = 4 # Gain setting (same as firmware)
+GAIN = 7 # Gain setting (same as firmware)
 RESOLUTION = 0 # Resolution setting (same as firmware)
 BAUD = 115200 # Baud rate
 COM = '/dev/ttyACM0' # Serial port
