@@ -113,28 +113,28 @@ void setup(void)
 
   delay(100);
 
-  for (uint i = 0; i < sensorArray.getNumberOfSensors(); i++)
-  {
-    uint16_t x, y, z;
-    if (!sensorArray.getSensor(i)->readRawMeasurement(&x, &y, &z)) {
-      Serial.println("ERROR");
-    }
+  // for (uint i = 0; i < sensorArray.getNumberOfSensors(); i++)
+  // {
+  //   uint16_t x, y, z;
+  //   if (!sensorArray.getSensor(i)->readRawMeasurement(&x, &y, &z)) {
+  //     Serial.println("ERROR");
+  //   }
     
-    if (!sensorArray.getSensor(i)->setConstantOffset(MLX90393_X, x - 32768)) {
-      Serial.println("ERROR");
-      while (1) {}
-    }
-    if (!sensorArray.getSensor(i)->setConstantOffset(MLX90393_Y, y - 32768)) {
-      Serial.println("ERROR");
-      while (1) {}
-    }
-    if (!sensorArray.getSensor(i)->setConstantOffset(MLX90393_Z, z - 32768)) {
-      Serial.println("ERROR");
-      while (1) {}
-    }
-    // sensorArray.getSensor(i)->setConstantOffset(MLX90393_Y, 32768 - y);
-    // sensorArray.getSensor(i)->setConstantOffset(MLX90393_Z, 32768 - z);
-  }
+  //   if (!sensorArray.getSensor(i)->setConstantOffset(MLX90393_X, x - 32768)) {
+  //     Serial.println("ERROR");
+  //     while (1) {}
+  //   }
+  //   if (!sensorArray.getSensor(i)->setConstantOffset(MLX90393_Y, y - 32768)) {
+  //     Serial.println("ERROR");
+  //     while (1) {}
+  //   }
+  //   if (!sensorArray.getSensor(i)->setConstantOffset(MLX90393_Z, z - 32768)) {
+  //     Serial.println("ERROR");
+  //     while (1) {}
+  //   }
+  //   // sensorArray.getSensor(i)->setConstantOffset(MLX90393_Y, 32768 - y);
+  //   // sensorArray.getSensor(i)->setConstantOffset(MLX90393_Z, 32768 - z);
+  // }
 
   // while (1){}
 }

@@ -28,9 +28,9 @@ def save_taxel_models(taxel_models, subdir, name):
 set_config(display='diagram')
 
 COUPLE_COMPONENTS = True
-POLY_DEGREE = 16
+POLY_DEGREE = 3
 
-def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, alpha=1.0):
+def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, alpha=0.1):
   
   if preserve_time:
     split = int(len(X) * 0.99)
@@ -66,9 +66,7 @@ class CombinedModel:
     predictions = []
     
     for i, model in enumerate(self.component_models):
-        
-      print(model[:-1].get_feature_names_out())
-        
+
       predictions.append(model.predict(X[:, i].reshape(-1, 1))[:, 0])
     
     return np.array(predictions).T

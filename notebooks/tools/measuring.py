@@ -23,13 +23,13 @@ class MeasuringInterface:
         self.sensor_reader_thread = Thread(target=read_and_publish_sensor_sync, args=(name, self.sensor_q, ))
         self.sensor_reader_thread.start()
       
+    def set_level(self, level):
+        self.tf_q.put(("set_level", level))
+        self.sensor_q.put(("set_level", level))
+
     def stop_measuring(self):
-        self.tf_q.put(None)
-        self.sensor_q.put(None)
+        self.tf_q.put(("stop",))
+        self.sensor_q.put(("stop",))
         
         self.sensor_reader_thread.join()
         self.tf_reader_thread.join()
-        
-        self.tf_q.get()
-        self.sensor_q.get()
-              

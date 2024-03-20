@@ -2,6 +2,37 @@ import pandas as pd
 import os
 import numpy as np
 
+def validate_data(data, model, ARRAY_SIZE=4):
+    # Validate against the subsampled version
+    # Load in data file and prepare for val
+    
+    # Predict F_z{i} based on measurements
+    X = data[[f'Z{i}' for i in range(ARRAY_SIZE)]].to_numpy()
+    F_zi = model.predict(X)
+    
+    return F_zi
+
+def correct_data_for_faulty_conversion(faulty_data, array_size, old_factors, new_factors):
+    
+    # Correction of data
+    for i in range(array_size):
+        for j, letter in enumerate(["X", "Y", "Z"]):
+            
+            # Correction (from what I did in the sensor measurement .py file)
+            faulty_data.loc[:, f'{letter}{i}'] /= old_factors[j]
+            faulty_data.loc[:, f'{letter}{i}'] += 32768
+            
+            # Now in the sensor readout code I also set a constant offset. So a measurement of 32768 was reported as 0
+            # faulty_data.loc[:, f'{letter}{i}'] -= 32768
+            
+            # 2's complement
+            faulty_data[f'{letter}{i}'][faulty_data[f'{letter}{i}'] > 2**16] -= 2**16
+            
+            # Correct factor (to uT)
+            faulty_data[f'{letter}{i}'] *= new_factors[j]
+
+    return faulty_data
+
 def split_data_into_regions(data, center_points, min_distance=99999999):
     
     ARRAY_SIZE_SUB = len(center_points)
@@ -39,31 +70,29 @@ def split_data_into_regions_full(data, center_points, columns, min_distance=9999
     # Note: keeps the time order intact
     models = [data.copy() for i in range(ARRAY_SIZE_SUB)]
     
-    print(closest.shape)
-    print(models[0][closest != 0][columns].shape)
-    # models = [data[closest == i][distances[closest == i] < min_distance] for i in range(ARRAY_SIZE_SUB)]
     for i in range(ARRAY_SIZE_SUB):
         
         for col in columns:
             models[i].loc[closest != i, col] = 0
             models[i].loc[distances[:, i] > min_distance, col] = 0
-       
-        
-        # model.reset_index(inplace=True)
-        # model.dropna(inplace=True)
+    
+    print(data.shape)
+    print(models[0].shape)
         
     return models
 
-def extract_center_points_from_data(data, ARRAY_SIZE_SUB, normalize=False):
+def extract_center_points_from_data(old_data, ARRAY_SIZE_SUB, normalize=False):
     
     # Boundary search of where the x,y is valid
-    z_filter = data['Z'].copy().to_numpy()
-    z_filter[data['Z'] - np.min(z_filter) > 0.003] = 0
+    z_filter = old_data['Z'].copy().to_numpy()
+    z_filter[old_data['Z'] - np.min(z_filter) > 0.003] = 0
     z_filter[z_filter.nonzero()] = 1
     boundaries = np.diff(z_filter).nonzero()[0].reshape(-1, 2)
     
+    data = old_data.copy()
+    
     data_points = np.zeros((ARRAY_SIZE_SUB, 2))
-    assert boundaries.shape[0] == ARRAY_SIZE_SUB
+    assert boundaries.shape[0] == ARRAY_SIZE_SUB, f"Expected {ARRAY_SIZE_SUB} boundaries, got {boundaries.shape[0]}"
     
     for i in range(ARRAY_SIZE_SUB):
         data_points[i][0] = data['X'].to_numpy()[boundaries[i][0]:boundaries[i][1]].mean()
@@ -82,12 +111,17 @@ def extract_center_points_from_data(data, ARRAY_SIZE_SUB, normalize=False):
     
     return data_points, data
 
-def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25):
+def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, faulty=True):
     
     columns = [f'X{i}' for i in range(ARRAY_SIZE)] + [f'Y{i}' for i in range(ARRAY_SIZE)] + [f'Z{i}' for i in range(ARRAY_SIZE)]
     
     TFdata = read_csv_file(f"../data/raw/TF/{name}.csv") 
     sensordata = read_csv_file(f'../data/raw/sensor/{name}.csv')
+    
+    sensordata.info()
+    # First corrcet faulty data
+    if faulty:
+        sensordata = correct_data_for_faulty_conversion(sensordata, ARRAY_SIZE, [0.300, 0.300, 0.484], [0.150, 0.150, 0.242])
     
     # First unwrap the sensordata
     sensordata = unwrap_data(sensordata, columns)
@@ -96,7 +130,8 @@ def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25):
     data = time_sync_data(sensordata, TFdata, SENSOR_LAG / 1000)
 
     # Remove mean of first 100 samples
-    data = offset_data(data, columns, 100)
+    # data = offset_data(data, columns, 100)
+
 
     # Remove rows containing NaN values
     data = data.dropna()

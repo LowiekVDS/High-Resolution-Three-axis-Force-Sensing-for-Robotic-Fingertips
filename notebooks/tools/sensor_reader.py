@@ -36,6 +36,8 @@ ENABLE_WS = True # Enable WebSocket server. Disable if not using websocket. Scri
 ser = serial.Serial(COM, BAUD) 
 
 def read_and_publish_sensor_sync(name, que):
+    
+    level = 0
 
     # Define the UDP server address and port
     udp_server_address = ('localhost', 9870)
@@ -46,18 +48,32 @@ def read_and_publish_sensor_sync(name, que):
     with open( os.path.join(os.path.dirname(os.path.realpath(__file__)), f'../../data/raw/sensor/table_calibration/{name}.csv'), 'w', newline='') as csvfile:
 
         csv_writer = csv.writer(csvfile)
-        csv_writer.writerow(["t_wall [s]", "X0 [uT]", "Y0 [uT]", "Z0 [uT]", "X1 [uT]", "Y1 [uT]", "Z1 [uT]", "X2 [uT]", "Y2 [uT]", "Z2 [uT]", "X3 [uT]", "Y3 [uT]", "Z3 [uT]"])  # Header row
+        csv_writer.writerow(["t_wall [s]", "level_sensor []", "X0 [uT]", "Y0 [uT]", "Z0 [uT]", "X1 [uT]", "Y1 [uT]", "Z1 [uT]", "X2 [uT]", "Y2 [uT]", "Z2 [uT]", "X3 [uT]", "Y3 [uT]", "Z3 [uT]"])  # Header row
         
-        while que.empty():
+        is_running = True
+        
+        while is_running:
+        
+            if not que.empty():
+                cmd = que.get()
+                
+                print(cmd)
+                
+                if cmd[0] == "stop":
+                    is_running = False
+                    continue
+                elif cmd[0] == "set_level":
+                    level = cmd[1]           
+        
             data = ser.read(1)
             if data == b'\xAA':
                 data_bytes = ser.read(6 * 4)
-                row = {"t": time.time()}
+                row = {"t": time.time(), "level_sensor": level}
 
                 for i in range(4):
-                    x = (data_bytes[i * 3 * 2] << 8) + data_bytes[i * 3 * 2 + 1] - 32768
-                    y = (data_bytes[i * 3 * 2 + 2] << 8) + data_bytes[i * 3 * 2 + 3] - 32768
-                    z = (data_bytes[i * 3 * 2 + 4] << 8) + data_bytes[i * 3 * 2 + 5] - 32768
+                    x = (data_bytes[i * 3 * 2] << 8) + data_bytes[i * 3 * 2 + 1]
+                    y = (data_bytes[i * 3 * 2 + 2] << 8) + data_bytes[i * 3 * 2 + 3]
+                    z = (data_bytes[i * 3 * 2 + 4] << 8) + data_bytes[i * 3 * 2 + 5]
 
                     x *= mlx90393_lsb_lookup[0][GAIN][RESOLUTION][0] 
                     y *= mlx90393_lsb_lookup[0][GAIN][RESOLUTION][0] 
@@ -67,7 +83,7 @@ def read_and_publish_sensor_sync(name, que):
                     row[f"Y{i}"] = y
                     row[f"Z{i}"] = z
                     
-                csv_writer.writerow([row["t"], row["X0"], row["Y0"], row["Z0"], row["X1"], row["Y1"], row["Z1"],
+                csv_writer.writerow([row["t"], row["level_sensor"], row["X0"], row["Y0"], row["Z0"], row["X1"], row["Y1"], row["Z1"],
                                     row["X2"], row["Y2"], row["Z2"], row["X3"], row["Y3"], row["Z3"]])
                 
                 json_data = json.dumps(row)

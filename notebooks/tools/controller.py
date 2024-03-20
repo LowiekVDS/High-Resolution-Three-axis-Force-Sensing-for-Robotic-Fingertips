@@ -20,6 +20,10 @@ class CalibrationController:
   def get_sensor_force(self):
     force = self.get_tcp_force()
     force[0:3] = np.linalg.inv(self.transformation) @ force[0:3]
+    
+    for i in range(len(force)):
+      force[i] *= -1
+    
     return force
   
   def get_sensor_pose(self):
