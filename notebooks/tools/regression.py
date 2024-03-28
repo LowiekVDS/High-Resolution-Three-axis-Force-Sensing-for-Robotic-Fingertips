@@ -28,7 +28,7 @@ def save_taxel_models(taxel_models, subdir, name):
 set_config(display='diagram')
 
 COUPLE_COMPONENTS = True
-POLY_DEGREE = 3
+POLY_DEGREE = 1
 
 def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, alpha=10):
   
