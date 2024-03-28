@@ -81,11 +81,57 @@ def split_data_into_regions_full(data, center_points, columns, min_distance=9999
         
     return models
 
+def extract_features(data):
+    # Calculate magnitude and angle
+
+    data['F_m'] = np.sqrt(data['F_x']**2 + data['F_y']**2 + data['F_z']**2)
+    data['F_xy'] = np.sqrt(data['F_x']**2 + data['F_y']**2)
+    data['F_t'] = np.arctan2(data['F_y'], data['F_x']) 
+    for i in range(4):
+        data[f'M{i}'] = np.sqrt(data['X0']**2 + data['Y0']**2 + data['Z0']**2)
+        data[f'XY{i}'] = np.sqrt(data['X0']**2 + data['Y0']**2)
+        data[f'T{i}'] = np.arctan2(data['Y0'], data['X0'])
+        
+    return data
+    
+
 def extract_center_points_from_data(old_data, ARRAY_SIZE_SUB, normalize=False):
     
     # Boundary search of where the x,y is valid
     z_filter = old_data['Z'].copy().to_numpy()
-    z_filter[old_data['Z'] - np.min(z_filter) > 0.003] = 0
+    z_filter[old_data['Z'] - np.min(z_filter) > 0.005] = 0
+    z_filter[z_filter.nonzero()] = 1
+    boundaries = np.diff(z_filter).nonzero()[0].reshape(-1, 2)
+    
+    data = old_data.copy()
+    
+    data_points = np.zeros((ARRAY_SIZE_SUB, 2))
+    assert boundaries.shape[0] == ARRAY_SIZE_SUB, f"Expected {ARRAY_SIZE_SUB} boundaries, got {boundaries.shape[0]}"
+    
+    for i in range(ARRAY_SIZE_SUB):
+        data_points[i][0] = data['X'].to_numpy()[boundaries[i][0]:boundaries[i][1]].mean()
+        data_points[i][1] = data['Y'].to_numpy()[boundaries[i][0]:boundaries[i][1]].mean()
+    
+    # When needed, normalize the data (incl. X and Y)
+    if normalize:
+        # Normalize data points between 0 and 1
+        shift = np.min(data_points, axis=0)
+        scale = np.max(data_points, axis=0) - np.min(data_points, axis=0)
+        data_points = (data_points - shift) / scale
+
+        # Apply the filter to the XY data
+        data['X'] = (data['X'] - shift[0]) / scale[0]
+        data['Y'] = (data['Y'] - shift[1]) / scale[1]
+    
+    return data_points, data
+
+def extract_center_points_from_data_alt(old_data, ARRAY_SIZE_SUB, normalize=False):
+    
+    # Find 
+    
+    # Boundary search of where the x,y is valid
+    z_filter = old_data['Z'].copy().to_numpy()
+    z_filter[old_data['Z'] - np.min(z_filter) > 0.005] = 0
     z_filter[z_filter.nonzero()] = 1
     boundaries = np.diff(z_filter).nonzero()[0].reshape(-1, 2)
     
@@ -117,8 +163,7 @@ def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, faulty=True):
     
     TFdata = read_csv_file(f"../data/raw/TF/{name}.csv") 
     sensordata = read_csv_file(f'../data/raw/sensor/{name}.csv')
-    
-    sensordata.info()
+
     # First corrcet faulty data
     if faulty:
         sensordata = correct_data_for_faulty_conversion(sensordata, ARRAY_SIZE, [0.300, 0.300, 0.484], [0.150, 0.150, 0.242])
@@ -129,12 +174,11 @@ def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, faulty=True):
     # Time sync
     data = time_sync_data(sensordata, TFdata, SENSOR_LAG / 1000)
 
-    # Remove mean of first 100 samples
-    # data = offset_data(data, columns, 100)
-
-
     # Remove rows containing NaN values
     data = data.dropna()
+    
+    # Offset and scale
+    data = offset_data(data, columns, 100)
     
     # Remove other columns
     data = data.drop(columns=['t_robot', 'R_x', 'R_y', 'R_z'])

@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import dill
-from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.linear_model import LinearRegression, Ridge, ARDRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer, make_column_transformer
@@ -30,7 +30,7 @@ set_config(display='diagram')
 COUPLE_COMPONENTS = True
 POLY_DEGREE = 3
 
-def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, alpha=0.1):
+def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, alpha=10):
   
   if preserve_time:
     split = int(len(X) * 0.99)
@@ -42,9 +42,10 @@ def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, 
     X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, shuffle=True)
 
   pipeline = make_pipeline(
-    PolynomialFeatures(degree=POLY_DEGREE, include_bias=False), 
+    PolynomialFeatures(degree=POLY_DEGREE, include_bias=True), 
     # LinearRegression()
     Ridge(alpha=alpha)
+    # ARDRegression()
   )
   
   pipeline.fit(X_train, y_train)
@@ -83,11 +84,11 @@ def create_gradient_tree_and_fit(X, Y):
     reg = HistGradientBoostingRegressor()
 
     param_grid = {
-      "max_depth": [1, 2, 4, 6, 8, 10],
+      "max_depth": [1, 2, 4, 6],
       "learning_rate": np.linspace(0.01, 0.2, 5),
     }
     
-    gridsearch = GridSearchCV(reg, param_grid=param_grid, verbose=1, return_train_score=True, n_jobs=8)
+    gridsearch = GridSearchCV(reg, param_grid=param_grid, verbose=10, return_train_score=True, n_jobs=8)
 
     gridsearch.fit(X_train, y_train)  
     
