@@ -28,9 +28,9 @@ def save_taxel_models(taxel_models, subdir, name):
 set_config(display='diagram')
 
 COUPLE_COMPONENTS = True
-POLY_DEGREE = 1
+POLY_DEGREE = 3
 
-def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, alpha=10):
+def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, alpha=1):
   
   if preserve_time:
     split = int(len(X) * 0.99)
@@ -43,8 +43,8 @@ def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, 
 
   pipeline = make_pipeline(
     PolynomialFeatures(degree=POLY_DEGREE, include_bias=True), 
-    # LinearRegression()
-    Ridge(alpha=alpha)
+    LinearRegression()
+    # Ridge(alpha=alpha)
     # ARDRegression()
   )
   
