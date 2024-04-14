@@ -1,9 +1,11 @@
 #include "SensorArray.h"
 
-bool SensorArray::readData(uint16_t *x, uint16_t *y, uint16_t *z) {
+bool SensorArray::readData(uint16_t *x, uint16_t *y, uint16_t *z)
+{
 
   // First start all measurements
-  for (int i = 0; i < this->numSensors; i++) {
+  for (int i = 0; i < this->numSensors; i++)
+  {
     if (!this->sensors[i].startSingleMeasurement())
       return false;
   }
@@ -12,7 +14,8 @@ bool SensorArray::readData(uint16_t *x, uint16_t *y, uint16_t *z) {
   this->sensors[0].waitForConversion();
 
   // Now get data
-  for (uint i = 0; i < this->numSensors; i++) {
+  for (uint8_t i = 0; i < this->numSensors; i++)
+  {
     if (!this->sensors[i].readRawMeasurement(x + i, y + i, z + i))
       return false;
   }
@@ -20,27 +23,66 @@ bool SensorArray::readData(uint16_t *x, uint16_t *y, uint16_t *z) {
   return true;
 }
 
-bool SensorArray::addSensor(uint8_t address) {
-    Adafruit_MLX90393* newSensors = new Adafruit_MLX90393[numSensors + 1];
-    float* newSensorData = new float[numSensors + 1];
+bool SensorArray::setMuxChannel(uint8_t chan)
+{
 
-    // Copy existing sensors and data
-    for (int i = 0; i < numSensors; i++) {
-        newSensors[i] = sensors[i];
-        newSensorData[i] = sensorData[i];
+  // Compatibility layer with non-mux systems
+  if (this->mux_addr < 0x70 || this->mux_addr > 0x77)
+  {
+    return true;
+  }
+
+  if (chan == this->current_chan)
+  {
+    return true;
+  }
+
+  Wire.beginTransmission(this->mux_addr);
+  Wire.write(0x80 >> chan);
+  if (Wire.endTransmission() == false)
+  {
+    this->current_chan = chan;
+    return true;
+  }
+
+  return false;
+}
+
+Adafruit_MLX90393 *SensorArray::getSensor(uint8_t id)
+{
+  this->setMuxChannel((this->addresses[id] & 0xf0) >> 4);
+
+  if (id >= this->numSensors)
+    return nullptr;
+
+  return this->sensors + id;
+}
+
+bool SensorArray::addSensors(uint8_t *addresses, uint8_t numSensors)
+{
+
+  for (uint8_t i = 0; i < numSensors; i++)
+  {
+    // Set channel (if not set yet)
+    bool channel_set = this->setMuxChannel((addresses[i] & 0xf0) >> 4);
+
+    if (!channel_set) {
+      Serial.print("Failed to set channel ");
+      Serial.println((addresses[i] & 0xf0) >> 4);
+      return false;
     }
 
-    // Add the new sensor
-    newSensors[numSensors] = Adafruit_MLX90393();
-    if (newSensors[numSensors].begin_I2C(address, this->speed)) {
-        sensors = newSensors;
-        sensorData = newSensorData;
-        numSensors++;
-        return true;
-    } else {
-        // Failed to initialize the new sensor
-        delete[] newSensors;
-        delete[] newSensorData;
-        return false;
+    // Init the new sensor
+    if (!channel_set || !this->sensors[i].begin_I2C(addresses[i] & 0x0f, this->speed))
+    {
+      Serial.print("Failed to initialize sensor ");
+      Serial.println(addresses[i], 16);
+      return false;
     }
+  }
+
+  this->addresses = addresses;
+  this->numSensors = numSensors;
+
+  return true;
 }
