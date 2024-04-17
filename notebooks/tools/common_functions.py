@@ -169,29 +169,22 @@ def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, faulty=True):
         sensordata = correct_data_for_faulty_conversion(sensordata, ARRAY_SIZE, [0.300, 0.300, 0.484], [0.150, 0.150, 0.242])
     
     # First unwrap the sensordata
-    sensordata = unwrap_data(sensordata, columns)
+    # sensordata = unwrap_data(sensordata, columns)
 
     dt = TFdata.iloc[-1]['t_wall'] - TFdata.iloc[0]['t_wall']
-    sample_rate = len(TFdata['F_x']) / dt
-    print(sample_rate)
 
-
-    TFdata['F_x'] = TFdata['F_x'].rolling(window=100).mean()
-    TFdata['F_y'] = TFdata['F_y'].rolling(window=100).mean()
-    TFdata['F_z'] = TFdata['F_z'].rolling(window=100).mean()
+    # TFdata['F_x'] = TFdata['F_x'].rolling(window=10).mean()
+    # TFdata['F_y'] = TFdata['F_y'].rolling(window=10).mean()
+    # TFdata['F_z'] = TFdata['F_z'].rolling(window=10).mean()
 
     # Time sync
     data = time_sync_data(sensordata, TFdata, SENSOR_LAG / 1000)
-
-
-
+    
     # Remove rows containing NaN values
     data = data.dropna()
     
     # Offset and scale
-    # data = offset_data(data, columns, 100)
-    
-
+    data = offset_data(data, columns, 100)
     
     # Remove other columns
     data = data.drop(columns=['t_robot', 'R_x', 'R_y', 'R_z'])

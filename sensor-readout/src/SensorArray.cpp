@@ -38,7 +38,7 @@ bool SensorArray::setMuxChannel(uint8_t chan)
   }
 
   Wire.beginTransmission(this->mux_addr);
-  Wire.write(0x80 >> chan);
+  Wire.write(0x01 << chan);
   if (Wire.endTransmission() == false)
   {
     this->current_chan = chan;

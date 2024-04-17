@@ -83,11 +83,13 @@ class CalibrationController:
     
     return self.get_sensor_pose()
 
-  def move_absolute(self, xyz, velocity = 0.1, acceleration = 0.5):
+  def move_absolute(self, given_xyz, velocity = 0.1, acceleration = 0.5):
     """
     Args:
       xyz: absolute position vector, defined in sensor frame
     """
+    
+    xyz = given_xyz[0:3]
 
     # Transform to tcp
     xyz_tcp = np.dot(self.transformation, xyz)
@@ -96,6 +98,9 @@ class CalibrationController:
     tcp_pose_0 = self.get_tcp_pose()
     tcp_pose_1 = np.array(tcp_pose_0.copy())
     tcp_pose_1[0:3] = xyz_tcp
+    
+    if len(given_xyz) > 3:
+      tcp_pose_1[3:6] = given_xyz[3:6]
   
     path = [list(tcp_pose_0), list(tcp_pose_1)]
 
