@@ -22,7 +22,7 @@ import time
 GAIN = 7 # Gain setting (same as firmware)
 RESOLUTION = 0 # Resolution setting (same as firmware)
 BAUD = 115200 # Baud rate
-COM = '/dev/ttyACM0' # Serial port
+COM = '/dev/ttyACM1' # Serial port
 ENABLE_WS = True # Enable WebSocket server. Disable if not using websocket. Script will crash otherwise.
 NR_OF_SENSORS = 32 # Number of sensors
 TEMP_COMP = True
@@ -181,7 +181,7 @@ def read_and_publish_sensor_sync(name, que):
                     csvrow.append(row[f"Y{i}"])
                     csvrow.append(row[f"Z{i}"])
 
-                # queue.put(np.array([row[f"X{i}"] for i in range(NR_OF_SENSORS)] + [row[f"Y{i}"] for i in range(NR_OF_SENSORS)] + [row[f"Z{i}"] for i in range(NR_OF_SENSORS)]))
+                queue.put(np.array([row[f"X{i}"] for i in range(NR_OF_SENSORS)] + [row[f"Y{i}"] for i in range(NR_OF_SENSORS)] + [row[f"Z{i}"] for i in range(NR_OF_SENSORS)]))
 
                 csv_writer.writerow(csvrow)
                 json_data = json.dumps(row)
