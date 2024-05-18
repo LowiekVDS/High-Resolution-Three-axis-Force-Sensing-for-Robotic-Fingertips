@@ -17,6 +17,18 @@ def plot_taxel(data, taxel_id):
     
   plt.show()
 
+def plot_three_components(comps):
+  
+  X, Y, Z = comps
+  
+  fig, axs = plt.subplots(3, 1, figsize=(12, 8))
+  
+  axs[0].plot(X)  
+  axs[1].plot(Y)  
+  axs[2].plot(Z)    
+  
+  plt.show()
+
 def plot_xy(data, show=True):
   
   plt.plot(data['X'], data['Y'])

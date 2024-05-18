@@ -30,7 +30,7 @@ set_config(display='diagram')
 COUPLE_COMPONENTS = True
 POLY_DEGREE = 3
 
-def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, alpha=1):
+def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, alpha=1, degree=3):
   
   if preserve_time:
     split = int(len(X) * 0.99)
@@ -42,7 +42,7 @@ def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, 
     X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, shuffle=True)
 
   pipeline = make_pipeline(
-    PolynomialFeatures(degree=POLY_DEGREE, include_bias=True), 
+    PolynomialFeatures(degree=degree, include_bias=True), 
     LinearRegression()
     # Ridge(alpha=alpha)
     # ARDRegression()

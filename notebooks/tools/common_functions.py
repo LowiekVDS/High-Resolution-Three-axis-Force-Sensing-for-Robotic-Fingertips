@@ -75,9 +75,6 @@ def split_data_into_regions_full(data, center_points, columns, min_distance=9999
         for col in columns:
             models[i].loc[closest != i, col] = 0
             models[i].loc[distances[:, i] > min_distance, col] = 0
-    
-    print(data.shape)
-    print(models[0].shape)
         
     return models
 
@@ -159,6 +156,7 @@ def extract_center_points_from_data_alt(old_data, ARRAY_SIZE_SUB, normalize=Fals
 
 def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, faulty=True):
     
+    print(f"Preparing data for fitting: {name}")
     columns = [f'X{i}' for i in range(ARRAY_SIZE)] + [f'Y{i}' for i in range(ARRAY_SIZE)] + [f'Z{i}' for i in range(ARRAY_SIZE)]
     
     TFdata = read_csv_file(f"../data/raw/TF/{name}.csv") 
@@ -286,10 +284,10 @@ def time_sync_data(df1, df2, df1_lag):
     
     return combined
 
-def offset_data(data, columns, window=100):
-    
+def offset_data(data, columns, window=100, startup=100):
+
     for col in columns:
-        data[col] -= np.mean(data[col][:window])
+        data[col] -= np.mean(data[col][startup:startup+window])
         data[col] /= 1000
         
     return data

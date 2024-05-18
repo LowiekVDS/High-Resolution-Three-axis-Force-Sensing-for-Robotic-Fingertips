@@ -3,47 +3,54 @@ import numpy as np
 import cv2
 import time
 
-def plot_colormap(queue):
-    while True:
-        data = queue.get()
-        if data is None:
-            break
+class SensorGUI:
+    
+    def __init__(self) -> None:
+        self.is_first = True
+        self.zero_data = [np.zeros((8, 4)), np.zeros((8, 4)), np.zeros((8, 4))]
+    
+
+    def plot_colormap(self, all_data):
+
+        components = ['X', 'Y', 'Z']
+        for i in range(3):
+            
+            data = all_data[i * 32 : (i + 1) * 32]
+            
+            # Reshape the 1D array into a 2D array (4x8)
+            data_matrix = np.reshape(data, (8, 4)) - self.zero_data[i]
+
+            if self.is_first:
+                self.zero_data[i] = data_matrix
+                continue
+            
+            data_matrix = np.abs(data_matrix)
+
+            # Scale the values to 0-255 for better visualization
+            val_range = np.max(data_matrix)
+            
+            
+            data_matrix = ((data_matrix) / val_range * 255).astype(np.uint8)
+
+            # Create a colormap image using OpenCV
+            colormap = cv2.applyColorMap(data_matrix, cv2.COLORMAP_BONE)
+
+            scaled_colormap = cv2.resize(colormap, (400, 800), interpolation=cv2.INTER_NEAREST)  # Adjust the size as needed
+
+            # Display the resized colormap image
+            cv2.imshow('Map ' + components[i], scaled_colormap)
         
-        # Reshape the 1D array into a 2D array (4x8)
-        data_matrix = np.reshape(data, (8, 4))
-
-        # Scale the values to 0-255 for better visualization
-        val_range = np.max(data_matrix) - np.min(data_matrix)
-        data_matrix = (data_matrix / val_range * 255).astype(np.uint8)
-
-        # Create a colormap image using OpenCV
-        colormap = cv2.applyColorMap(data_matrix, cv2.COLORMAP_BONE)
-
-        scaled_colormap = cv2.resize(colormap, (400, 800), interpolation=cv2.INTER_NEAREST)  # Adjust the size as needed
-
-        # Display the resized colormap image
-        cv2.imshow('Colormap', scaled_colormap)
+        if self.is_first:
+            self.is_first = False
+        
         cv2.waitKey(1)
-
-if __name__ == '__main__':
-    # Create a multiprocessing queue
-    queue = multiprocessing.Queue()
-
-    # Start the process
-    process = multiprocessing.Process(target=plot_colormap, args=(queue,))
-    process.start()
-
-    # Simulate continuous data sending (Replace this with your actual data source)
-    while True:
-        # Generate random data for demonstration
-        data = np.random.rand(32)
-
-        # Put the data into the queue
-        queue.put(data)
-
-        # Simulate the 40Hz frequency
-        time.sleep(1/40)
-
-    # End the process
-    queue.put(None)
-    process.join()
+        
+def play_gui(all_data, skip = 1):
+    
+    print(all_data.shape)
+    sensor_gui = SensorGUI()
+    for i in range(0, all_data.shape[0], skip):
+        sensor_gui.plot_colormap(all_data[i, :])
+        # time.sleep(rate)
+    
+    cv2.destroyAllWindows()
