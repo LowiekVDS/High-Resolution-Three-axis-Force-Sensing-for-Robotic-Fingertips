@@ -17,7 +17,7 @@ def plot_taxel(data, taxel_id):
     
   plt.show()
 
-def plot_three_components(comps):
+def plot_three_components(comps, show=True):
   
   X, Y, Z = comps
   
@@ -27,7 +27,8 @@ def plot_three_components(comps):
   axs[1].plot(Y)  
   axs[2].plot(Z)    
   
-  plt.show()
+  if show:
+    plt.show()
 
 def plot_xy(data, show=True):
   

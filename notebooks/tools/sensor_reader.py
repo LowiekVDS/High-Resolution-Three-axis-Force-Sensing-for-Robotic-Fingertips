@@ -22,7 +22,7 @@ import time
 GAIN = 7 # Gain setting (same as firmware)
 RESOLUTION = 0 # Resolution setting (same as firmware)
 BAUD = 115200 # Baud rate
-COM = '/dev/ttyACM1' # Serial port
+COM = '/dev/ttyACM2' # Serial port
 ENABLE_WS = True # Enable WebSocket server. Disable if not using websocket. Script will crash otherwise.
 NR_OF_SENSORS = 32 # Number of sensors
 TEMP_COMP = True
@@ -119,6 +119,9 @@ def read_and_publish_sensor_sync(name, que):
         
         is_running = True
         
+        if not ser.is_open:
+            ser.open()
+        
         while is_running:
         
             if not que.empty():
@@ -126,6 +129,7 @@ def read_and_publish_sensor_sync(name, que):
                 
                 if cmd[0] == "stop":
                     is_running = False
+                    ser.read(1)
                     continue
                 elif cmd[0] == "set_level":
                     level = cmd[1]           
@@ -190,4 +194,4 @@ def read_and_publish_sensor_sync(name, que):
         udp_socket.close()
         queue.put(None)
         process.join()
-        # ser.close()
+        ser.close()

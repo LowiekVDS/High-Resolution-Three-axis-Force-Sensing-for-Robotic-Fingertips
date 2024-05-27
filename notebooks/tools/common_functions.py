@@ -178,6 +178,14 @@ def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, faulty=True):
     # Time sync
     data = time_sync_data(sensordata, TFdata, SENSOR_LAG / 1000)
     
+    # Do values ^ -1
+    
+    if '24' in name:
+        data['Z24'] += 15300
+    
+    for col in [f'Z{i}' for i in range(ARRAY_SIZE)]:
+        data[col] = 1 / data[col]
+    
     # Remove rows containing NaN values
     data = data.dropna()
     
@@ -284,11 +292,24 @@ def time_sync_data(df1, df2, df1_lag):
     
     return combined
 
+def mean_without_outliers(signal, threshold=3.5):
+    median = np.median(signal)
+    mad = np.median(np.abs(signal - median))
+    if mad == 0:
+        return median  # Avoid division by zero
+    
+    modified_z_scores = 0.6745 * (signal - median) / mad
+    mask = np.abs(modified_z_scores) <= threshold
+    filtered_signal = signal[mask]
+    
+    return np.mean(filtered_signal)
+
 def offset_data(data, columns, window=100, startup=100):
 
     for col in columns:
-        data[col] -= np.mean(data[col][startup:startup+window])
-        data[col] /= 1000
+        data[col] -= mean_without_outliers(data[col][:window])
+        # data[col] -= np.mean(data[col][startup:startup+window])
+        # data[col] /= 1000
         
     return data
 

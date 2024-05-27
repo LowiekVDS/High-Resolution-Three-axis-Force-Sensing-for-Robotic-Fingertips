@@ -6,10 +6,11 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer, make_column_transformer
 from sklearn.pipeline import make_pipeline, make_union
-from sklearn.preprocessing import PolynomialFeatures
+from sklearn.preprocessing import PolynomialFeatures, FunctionTransformer
 from sklearn import set_config
 from sklearn.multioutput import MultiOutputRegressor, RegressorChain
 from sklearn.compose import TransformedTargetRegressor
+from sklearn.base import BaseEstimator, TransformerMixin
 
 def save_taxel_models(taxel_models, subdir, name):
     
@@ -30,22 +31,50 @@ set_config(display='diagram')
 COUPLE_COMPONENTS = True
 POLY_DEGREE = 3
 
+def calculate_RMSE(y_true, y_pred):
+
+    N = y_true.shape[0]
+    
+    mse_custom = np.sum((y_true - y_pred)**2, axis=0) / N
+    mse_custom = np.sqrt(mse_custom)
+    
+    return np.mean(mse_custom)
+  
+def calculate_NMSE(y_true, y_pred):
+
+    N = y_true.shape[0]
+    
+    mse_custom = np.sum((y_true - y_pred) ** 2, axis=0) / N    
+
+    max = np.max(y_pred, axis=0)
+    min = np.min(y_pred, axis=0)
+    
+    diff = max - min
+    
+    for i in range(len(mse_custom)):
+        mse_custom[i] = mse_custom[i] / diff[i]
+        
+    mse_custom = np.sum(mse_custom) / len(mse_custom)
+    
+    return mse_custom
+
+class PowerTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self, power=-1):
+        self.power = power
+    
+    def fit(self, X, y=None):
+        return self  # No fitting necessary for this transformer
+    
+    def transform(self, X):
+        return np.power(X, self.power)
+
 def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, alpha=1, degree=3):
   
-  if preserve_time:
-    split = int(len(X) * 0.99)
-    X_train = X[:split]
-    X_test = X[split:]
-    y_train = Y[:split]
-    y_test = Y[split:]
-  else:
-    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, shuffle=True)
+  X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, shuffle=True)
 
   pipeline = make_pipeline(
     PolynomialFeatures(degree=degree, include_bias=True), 
-    LinearRegression()
-    # Ridge(alpha=alpha)
-    # ARDRegression()
+    LinearRegression(fit_intercept=False) # Should not fit the intercept since "include_bias=True" in PolynomialFeatures actually does this by adding 1 as a feature
   )
   
   pipeline.fit(X_train, y_train)
@@ -55,7 +84,7 @@ def create_regression_pipeline_and_fit(X, Y, debug = True, preserve_time=False, 
     print("Score: ", pipeline.score(X_test, y_test))
     print("MSE: ", mean_squared_error(y_test, pipeline.predict(X_test)))
   
-  return pipeline
+  return pipeline, X_train, X_test, y_train, y_test
 
 class CombinedModel:
   
