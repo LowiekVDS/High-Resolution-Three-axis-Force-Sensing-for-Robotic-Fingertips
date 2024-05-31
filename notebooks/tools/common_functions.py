@@ -154,32 +154,25 @@ def extract_center_points_from_data_alt(old_data, ARRAY_SIZE_SUB, normalize=Fals
     
     return data_points, data
 
-def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, faulty=True):
+def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, rotation=0, faulty=True, cut_in_half=False):
     
     print(f"Preparing data for fitting: {name}")
     columns = [f'X{i}' for i in range(ARRAY_SIZE)] + [f'Y{i}' for i in range(ARRAY_SIZE)] + [f'Z{i}' for i in range(ARRAY_SIZE)]
     
     TFdata = read_csv_file(f"../data/raw/TF/{name}.csv") 
     sensordata = read_csv_file(f'../data/raw/sensor/{name}.csv')
-
+            
     # First corrcet faulty data
     if faulty:
         sensordata = correct_data_for_faulty_conversion(sensordata, ARRAY_SIZE, [0.300, 0.300, 0.484], [0.150, 0.150, 0.242])
-    
-    # First unwrap the sensordata
-    # sensordata = unwrap_data(sensordata, columns)
-
-    dt = TFdata.iloc[-1]['t_wall'] - TFdata.iloc[0]['t_wall']
-
-    # TFdata['F_x'] = TFdata['F_x'].rolling(window=10).mean()
-    # TFdata['F_y'] = TFdata['F_y'].rolling(window=10).mean()
-    # TFdata['F_z'] = TFdata['F_z'].rolling(window=10).mean()
 
     # Time sync
     data = time_sync_data(sensordata, TFdata, SENSOR_LAG / 1000)
+
+    if cut_in_half:
+        data = data[:len(data)//2]
     
-    # Do values ^ -1
-    
+    # Idk why this is needed, but it is
     if '24' in name:
         data['Z24'] += 15300
     
@@ -194,6 +187,14 @@ def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, faulty=True):
     
     # Remove other columns
     data = data.drop(columns=['t_robot', 'R_x', 'R_y', 'R_z'])
+    
+    # Rotate data
+    for i in range(32):
+        X_i = data[f'X{i}'] * np.cos(np.deg2rad(rotation)) - data[f'Y{i}'] * np.sin(np.deg2rad(rotation))
+        Y_i = data[f'X{i}'] * np.sin(np.deg2rad(rotation)) + data[f'Y{i}'] * np.cos(np.deg2rad(rotation))
+        
+        data[f'X{i}'] = X_i.copy()
+        data[f'Y{i}'] = Y_i.copy()
 
     return data
 
@@ -268,6 +269,8 @@ def time_sync_data(df1, df2, df1_lag):
     
     df1_is_first = df1['t_wall'][0] < df2['t_wall'][0]
     sensor_is_last = df1['t_wall'][len(df1)-1] > df2['t_wall'][len(df2)-1]
+    
+    print(sensor_is_last, df1_is_first)
 
     if df1_is_first:
         start = df2['t_wall'][0]
