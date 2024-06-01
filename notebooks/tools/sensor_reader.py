@@ -80,14 +80,13 @@ def plot_colormap(queue):
 ser = serial.Serial(COM, BAUD) 
     
 
-def read_and_publish_sensor_sync(name, que):
+def read_and_publish_sensor_sync(name, que, visualize=True):
 
-    queue = multiprocessing.Queue()
-
-    # Start the process
-    process = multiprocessing.Process(target=plot_colormap, args=(queue,))
-    process.start()
-    
+    if visualize:
+        queue = multiprocessing.Queue()
+        process = multiprocessing.Process(target=plot_colormap, args=(queue,))
+        process.start()
+        
     level = 0
     
     prev_x = [0] * NR_OF_SENSORS
@@ -185,13 +184,17 @@ def read_and_publish_sensor_sync(name, que):
                     csvrow.append(row[f"Y{i}"])
                     csvrow.append(row[f"Z{i}"])
 
-                queue.put(np.array([row[f"X{i}"] for i in range(NR_OF_SENSORS)] + [row[f"Y{i}"] for i in range(NR_OF_SENSORS)] + [row[f"Z{i}"] for i in range(NR_OF_SENSORS)]))
+                if visualize:
+                    queue.put(np.array([row[f"X{i}"] for i in range(NR_OF_SENSORS)] + [row[f"Y{i}"] for i in range(NR_OF_SENSORS)] + [row[f"Z{i}"] for i in range(NR_OF_SENSORS)]))
 
                 csv_writer.writerow(csvrow)
                 json_data = json.dumps(row)
                 udp_socket.sendto(json_data.encode(), udp_server_address)                
 
         udp_socket.close()
-        queue.put(None)
-        process.join()
         ser.close()
+        
+        if visualize:
+            queue.put(None)
+            process.join()
+        

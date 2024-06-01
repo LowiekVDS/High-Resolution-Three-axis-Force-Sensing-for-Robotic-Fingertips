@@ -175,7 +175,16 @@ def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, rotation=0, fa
     # Idk why this is needed, but it is
     if '24' in name:
         data['Z24'] += 15300
+
+    # Rotate data
+    for i in range(32):
+        X_i = data[f'X{i}'] * np.cos(np.deg2rad(rotation)) - data[f'Y{i}'] * np.sin(np.deg2rad(rotation))
+        Y_i = data[f'X{i}'] * np.sin(np.deg2rad(rotation)) + data[f'Y{i}'] * np.cos(np.deg2rad(rotation))
+        
+        data[f'X{i}'] = X_i.copy()
+        data[f'Y{i}'] = Y_i.copy()
     
+    # Z inversion
     for col in [f'Z{i}' for i in range(ARRAY_SIZE)]:
         data[col] = 1 / data[col]
     
@@ -187,14 +196,6 @@ def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, rotation=0, fa
     
     # Remove other columns
     data = data.drop(columns=['t_robot', 'R_x', 'R_y', 'R_z'])
-    
-    # Rotate data
-    for i in range(32):
-        X_i = data[f'X{i}'] * np.cos(np.deg2rad(rotation)) - data[f'Y{i}'] * np.sin(np.deg2rad(rotation))
-        Y_i = data[f'X{i}'] * np.sin(np.deg2rad(rotation)) + data[f'Y{i}'] * np.cos(np.deg2rad(rotation))
-        
-        data[f'X{i}'] = X_i.copy()
-        data[f'Y{i}'] = Y_i.copy()
 
     return data
 
