@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import numpy as np
+from .mlx import *
 
 def validate_data(data, model, ARRAY_SIZE=4):
     # Validate against the subsampled version
@@ -162,9 +163,12 @@ def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, rotation=0, fa
     TFdata = read_csv_file(f"../data/raw/TF/{name}.csv") 
     sensordata = read_csv_file(f'../data/raw/sensor/{name}.csv')
             
-    # First corrcet faulty data
-    if faulty:
-        sensordata = correct_data_for_faulty_conversion(sensordata, ARRAY_SIZE, [0.300, 0.300, 0.484], [0.150, 0.150, 0.242])
+    # First corrcet faulty data cuz bug in read script
+    if faulty:  
+        for i in range(ARRAY_SIZE):
+            sensordata[f'X{i}'] -= mlx90393_lsb_lookup[0][7][0][0] * 2 ** 16
+            sensordata[f'Y{i}'] -= mlx90393_lsb_lookup[0][7][0][0] * 2 ** 16
+            sensordata[f'Z{i}'] -= mlx90393_lsb_lookup[0][7][0][1] * 2 ** 16
 
     # Time sync
     data = time_sync_data(sensordata, TFdata, SENSOR_LAG / 1000)
