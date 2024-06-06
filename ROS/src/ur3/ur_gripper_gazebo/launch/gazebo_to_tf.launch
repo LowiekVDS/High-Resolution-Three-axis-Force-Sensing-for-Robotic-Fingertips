@@ -1,3 +1,0 @@
-<launch>
-    <node name="gazebo_to_tf" pkg="ur_gripper_gazebo" type="gazebo_to_tf.py"  output="screen"/>
-</launch>

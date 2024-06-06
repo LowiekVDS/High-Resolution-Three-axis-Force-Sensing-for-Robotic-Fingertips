@@ -12,8 +12,6 @@ public:
         sensorData = nullptr;
         numSensors = 0;
         current_chan = 255;
-
-        Wire.begin();
     };
 
     bool addSensors(uint8_t *addresses, uint8_t numSensors);
