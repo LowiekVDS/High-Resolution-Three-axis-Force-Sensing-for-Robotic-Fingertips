@@ -176,7 +176,7 @@ def prepare_data_for_fitting(name, ARRAY_SIZE=4, SENSOR_LAG = 25, rotation=0, fa
     if cut_in_half:
         data = data[:len(data)//2]
     
-    # Idk why this is needed, but it is
+    # Idk why this is needed, but it is in the taxel data
     if '24' in name:
         data['Z24'] += 15300
 

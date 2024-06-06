@@ -22,7 +22,7 @@ import time
 GAIN = 7 # Gain setting (same as firmware)
 RESOLUTION = 0 # Resolution setting (same as firmware)
 BAUD = 115200 # Baud rate
-COM = '/dev/ttyACM2' # Serial port
+COM = '/dev/ttyACM0' # Serial port
 ENABLE_WS = True # Enable WebSocket server. Disable if not using websocket. Script will crash otherwise.
 NR_OF_SENSORS = 32 # Number of sensors
 TEMP_COMP = True

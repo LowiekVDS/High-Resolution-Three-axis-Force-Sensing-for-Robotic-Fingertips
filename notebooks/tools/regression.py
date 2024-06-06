@@ -28,8 +28,7 @@ def save_taxel_models(taxel_models, subdir, name):
         
 set_config(display='diagram')
 
-COUPLE_COMPONENTS = True
-POLY_DEGREE = 3
+POLY_DEGREE = True
 
 def calculate_RMSE(y_true, y_pred):
 
